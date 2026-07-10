@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://16ynx6uppt4w"]
+
+[ext_resource type="Texture2D" uid="uid://blf5kjbevlles" path="res://assets/ant_walk_1.png" id="1_acg2n"]
+[ext_resource type="Texture2D" uid="uid://djsgh1ic3mhd1" path="res://assets/ant_walk_2.png" id="2_8svqu"]
+[ext_resource type="Texture2D" uid="uid://ccpg3wwe8je8c" path="res://assets/ant_walk_3.png" id="3_hkm68"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_04dxk"]
+animations = [{
+"frames": [],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_acg2n")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_8svqu")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_hkm68")
+}],
+"loop": 1,
+"name": &"walk",
+"speed": 10.0
+}]
+
+[node name="Ant" type="AnimatedSprite2D" unique_id=147492906]
+position = Vector2(0, -9.536743e-07)
+scale = Vector2(0.65625, 0.65625)
+sprite_frames = SubResource("SpriteFrames_04dxk")
+animation = &"walk"
+frame_progress = 0.6107197
