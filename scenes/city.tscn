@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://c5wydpaggoq3c"]
+
+[ext_resource type="Texture2D" uid="uid://01ouwxi8i536" path="res://assets/city.png" id="1_bih7l"]
+
+[node name="City" type="Sprite2D" unique_id=1247001218]
+modulate = Color(0, 0.69803923, 1, 1)
+texture = ExtResource("1_bih7l")
+
+[node name="Label" type="Label" parent="." unique_id=415435639]
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 1.0550001
+anchor_right = 0.5
+anchor_bottom = 1.0550001
+offset_left = -69.0
+offset_top = -61.500008
+offset_right = -29.0
+offset_bottom = -38.500008
+text = "A"
+horizontal_alignment = 1
