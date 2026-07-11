@@ -31,4 +31,5 @@ position = Vector2(0, -9.536743e-07)
 scale = Vector2(0.65625, 0.65625)
 sprite_frames = SubResource("SpriteFrames_04dxk")
 animation = &"walk"
+autoplay = "walk"
 frame_progress = 0.6107197

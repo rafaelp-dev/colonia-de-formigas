@@ -11,7 +11,8 @@ config_version=5
 [application]
 
 config/name="ant-colony-app"
-config/features=PackedStringArray("4.6", "GL Compatibility")
+run/main_scene="uid://2i6jyurabt7"
+config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [display]
@@ -23,8 +24,7 @@ window/stretch/aspect="expand"
 
 folder_colors={
 "res://assets/": "purple",
-"res://scenes/": "green",
-"res://scripts/": "yellow"
+"res://scenes/": "green"
 }
 
 [physics]
