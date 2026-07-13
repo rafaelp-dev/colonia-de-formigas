@@ -10,5 +10,3 @@ func _ready():
 	else:
 		label.text = str(index)
 	
-	# Não precisa mexer na label.position aqui por código! 
-	# Deixe o valor fixo que você configurou no Inspetor.

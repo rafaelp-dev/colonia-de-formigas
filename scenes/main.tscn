@@ -64,6 +64,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "START"
 
+[node name="btn_reset" type="Button" parent="CanvasLayer/Control/settings/VBoxContainer/buttons" unique_id=164680053]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "RESET"
+
 [node name="btn_pause" type="Button" parent="CanvasLayer/Control/settings/VBoxContainer/buttons" unique_id=61440017]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -103,5 +108,6 @@ text = "0.1"
 vertical_alignment = 1
 
 [connection signal="pressed" from="CanvasLayer/Control/settings/VBoxContainer/buttons/btn_start" to="." method="_on_btn_start_pressed"]
+[connection signal="pressed" from="CanvasLayer/Control/settings/VBoxContainer/buttons/btn_reset" to="." method="_on_btn_reset_pressed"]
 [connection signal="pressed" from="CanvasLayer/Control/settings/VBoxContainer/buttons/btn_pause" to="." method="_on_btn_pause_pressed"]
 [connection signal="value_changed" from="CanvasLayer/Control/settings/VBoxContainer/velocity/HBoxContainer2/MarginContainer/speed_slider" to="." method="_on_speed_slider_value_changed"]

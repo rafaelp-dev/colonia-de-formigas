@@ -17,10 +17,10 @@ var timer = 0.0
 
 # Variáveis do Critério de Parada e Resultados
 var current_iteration = 0
-const MAX_ITERATIONS = 100 # Critério de parada por limite de iterações
+const MAX_ITERATIONS = 100 
 var best_distance_global = INF
 var consecutive_no_improvement = 0
-const STAGNATION_LIMIT = 20 # Critério de parada por estagnação
+const STAGNATION_LIMIT = 20 
 
 var visual_lines = {}
 var cost_labels = {}
@@ -34,41 +34,24 @@ func _ready():
 	# 1. Configurar Labels de Resultado na Interface
 	setup_result_ui()
 	
-	# 2. Definir posições das cidades SEM SOBREPOSIÇÃO
-	var positions = []
-	var screen_size = get_viewport_rect().size
-	var num_cities_to_create = 10
-	var min_distance_between_cities = 120.0 
+	# 2. CONECTAR O SINAL DA LÓGICA (O elo perdido!)
+	if aco_engine.has_signal("logic_updated"):
+		aco_engine.logic_updated.connect(_on_aco_logic_updated)
 	
-	while positions.size() < num_cities_to_create:
-		var pos = Vector2(randf_range(100, screen_size.x - 100), randf_range(100, screen_size.y - 100))
-		
-		var too_close = false
-		for existing_pos in positions:
-			if pos.distance_to(existing_pos) < min_distance_between_cities:
-				too_close = true
-				break
-				
-		if not too_close:
-			positions.append(pos)
-	
-	setup_visual_cities(positions)
-	setup_visual_lines(positions)
-	setup_visual_ants()
-
-	aco_engine.setup(positions)
-	aco_engine.logic_updated.connect(_on_aco_logic_updated)
+	# 3. Iniciar o primeiro cenário/grafo
+	generate_new_simulation()
 
 func _process(delta):
 	if is_running:
 		timer += delta
 		if timer >= iteration_delay:
 			current_iteration += 1
+			# Atualiza o texto do status ANTES de rodar para a UI refletir a iteração atual
+			ui_status_label.text = "Status: Executando (Iteração %d/%d)" % [current_iteration, MAX_ITERATIONS]
 			aco_engine.run_iteration() 
 			timer = 0.0
 
 func setup_result_ui():
-	# Cria um container no canto superior esquerdo para exibir os resultados
 	var panel = PanelContainer.new()
 	panel.position = Vector2(20, 20)
 	panel.custom_minimum_size = Vector2(250, 80)
@@ -86,17 +69,81 @@ func setup_result_ui():
 	ui_best_cost_label.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(ui_best_cost_label)
 
+# --- FUNÇÃO CENTRAL DE GERAÇÃO/RESET ---
+
+func generate_new_simulation():
+	# 1. Interromper execuções e Tweens ativos
+	is_running = false
+	timer = 0.0
+	for a in ant_tweens.keys():
+		if ant_tweens[a] is Tween:
+			ant_tweens[a].kill()
+	
+	# 2. LIMPEZA IMEDIATA: Usamos .free() em vez de .queue_free() para limpar a árvore na hora!
+	for child in city_container.get_children(): 
+		child.free()
+	for child in line_container.get_children(): 
+		child.free()
+	for child in ant_container.get_children(): 
+		child.free()
+	
+	# 3. Resetar dicionários e variáveis de estado
+	visual_lines.clear()
+	cost_labels.clear()
+	ant_tweens.clear()
+	
+	current_iteration = 0
+	consecutive_no_improvement = 0
+	best_distance_global = INF
+	
+	ui_status_label.text = "Status: Novo Grafo Gerado"
+	ui_best_cost_label.text = "Melhor Distância: -"
+	ui_best_cost_label.modulate = Color(1, 1, 1, 1)
+
+	# 4. Sorteia novas posições de cidades sem sobreposição
+	var positions = []
+	var screen_size = get_viewport_rect().size
+	var num_cities_to_create = 10
+	var min_distance_between_cities = 120.0 
+	
+	while positions.size() < num_cities_to_create:
+		var pos = Vector2(randf_range(100, screen_size.x - 100), randf_range(100, screen_size.y - 100))
+		var too_close = false
+		for existing_pos in positions:
+			if pos.distance_to(existing_pos) < min_distance_between_cities:
+				too_close = true
+				break
+		if not too_close:
+			positions.append(pos)
+	
+	# 5. Configurar PRIMEIRO a lógica e DEPOIS o visual para os dados estarem prontos
+	aco_engine.setup(positions)
+	
+	setup_visual_cities(positions)
+	setup_visual_lines(positions)
+	setup_visual_ants()
+
 # --- FUNÇÕES DE INTERFACE ---
 
 func _on_btn_start_pressed():
+	print("Botão START clicado!")
+	
+	# Se a simulação já terminou, limpa os contadores para recomeçar no mesmo grafo
 	if current_iteration >= MAX_ITERATIONS or ui_status_label.text.contains("CONVERGIU"):
-		# Reinicia contadores se o usuário quiser rodar de novo
 		current_iteration = 0
 		consecutive_no_improvement = 0
 		best_distance_global = INF
+		ui_best_cost_label.text = "Melhor Distância: -"
+		ui_best_cost_label.modulate = Color(1, 1, 1, 1)
+	
 	is_running = true
-	ui_status_label.text = "Status: Executando (Iteração %d)" % current_iteration
-
+	ui_status_label.text = "Status: Executando (Iteração %d/%d)" % [current_iteration, MAX_ITERATIONS]
+	
+	# Força a primeira execução imediata sem esperar o timer do _process
+	if current_iteration == 0:
+		current_iteration = 1
+		aco_engine.run_iteration()
+	
 func _on_btn_pause_pressed():
 	is_running = false
 	ui_status_label.text = "Status: Pausado"
@@ -109,14 +156,9 @@ func _on_speed_slider_value_changed(value):
 # --- PONTE ENTRE LÓGICA E VISUAL ---
 
 func _on_aco_logic_updated(pheromones, tours):
-	# 1. Encontrar e atualizar o melhor custo desta iteração
 	check_best_solution(tours)
-	
-	# 2. Atualizar elementos visuais
 	update_pheromone_visuals(pheromones)
 	animate_ants(tours)
-	
-	# 3. Validar se atingiu critérios de parada
 	check_stopping_criteria()
 
 func check_best_solution(tours: Array):
@@ -130,24 +172,20 @@ func check_best_solution(tours: Array):
 			improved = true
 			consecutive_no_improvement = 0
 			ui_best_cost_label.text = "Melhor Distância: %d (Opção Ótima!)" % int(best_distance_global)
-			ui_best_cost_label.modulate = Color(1.0, 0.85, 0.0) # Texto Dourado
+			ui_best_cost_label.modulate = Color(1.0, 0.85, 0.0) 
 			
 	if not improved:
 		consecutive_no_improvement += 1
 
 func check_stopping_criteria():
-	# Critério 1: Limite máximo de Iterações atingido
 	if current_iteration >= MAX_ITERATIONS:
 		stop_simulation("CONVERGIU (Limite de Iterações)")
-		
-	# Critério 2: Estagnação (A solução não melhora há muitas gerações)
 	elif consecutive_no_improvement >= STAGNATION_LIMIT:
 		stop_simulation("CONVERGIU (Estagnação da Solução)")
 
 func stop_simulation(reason: String):
 	is_running = false
 	ui_status_label.text = "Status: %s" % reason
-	# Dá um efeito de congelamento visual nas formigas
 	for a in ant_tweens.keys():
 		if ant_tweens[a] is Tween:
 			ant_tweens[a].kill()
@@ -169,7 +207,7 @@ func setup_visual_lines(positions):
 			var key = str(i) + "_" + str(j)
 			
 			var line = Line2D.new()
-			line.width = 2.0
+			line.width = 4.0
 			line.default_color = Color(0.0, 0.7, 0.9, 0.15) 
 			line.add_point(pos_i)
 			line.add_point(pos_j)
@@ -182,8 +220,8 @@ func setup_visual_lines(positions):
 			
 			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-			lbl.add_theme_font_size_override("font_size", 11)
-			lbl.modulate = Color(1, 1, 1, 0.05) 
+			lbl.add_theme_font_size_override("font_size", 13)
+			lbl.modulate = Color(0.0, 0.0, 0.0, 0.945) 
 			
 			var mid_point = (pos_i + pos_j) / 2.0
 			lbl.position = mid_point - Vector2(25, 10)
@@ -236,21 +274,38 @@ func update_pheromone_visuals(pheromones):
 func animate_ants(tours):
 	var ants = ant_container.get_children()
 	
+	# Se as formigas foram deletadas pelo reset, recria imediatamente
+	if ants.size() == 0:
+		setup_visual_ants()
+		ants = ant_container.get_children()
+
 	for a in range(tours.size()):
 		if a >= ants.size(): break
 		
 		var ant = ants[a]
 		var tour = tours[a]
 		
+		# Força a parada de qualquer movimento anterior antes de aplicar o novo
 		if ant_tweens.has(a) and ant_tweens[a] is Tween:
 			ant_tweens[a].kill()
 			
 		var tween = create_tween()
 		ant_tweens[a] = tween
 		
-		ant.position = aco_engine.cities_positions[tour[0]]
+		# Segurança extra: garante que a rota calculada possui elementos válidos
+		if tour.size() > 0 and tour[0] < aco_engine.cities_positions.size():
+			ant.position = aco_engine.cities_positions[tour[0]]
 		
+		# Anima a formiga passando por cada nó
 		for i in range(1, tour.size()):
-			var next_city_pos = aco_engine.cities_positions[tour[i]]
-			var travel_time = iteration_delay / tour.size()
-			tween.tween_property(ant, "position", next_city_pos, travel_time)
+			if tour[i] < aco_engine.cities_positions.size():
+				var next_city_pos = aco_engine.cities_positions[tour[i]]
+				
+				# Ajuste dinâmico do tempo para que elas corram mais rápido quando o delay for curto
+				var travel_time = max(0.01, iteration_delay / float(tour.size()))
+				
+				# Move a formiga
+				tween.tween_property(ant, "position", next_city_pos, travel_time)
+
+func _on_btn_reset_pressed() -> void:
+	generate_new_simulation()

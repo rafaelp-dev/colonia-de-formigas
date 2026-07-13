@@ -1,7 +1,7 @@
 extends Node
 
 # Configurações do Algoritmo
-var num_ants = 15
+var num_ants = 10
 var alpha = 1.0    # Importância do feromônio
 var beta = 2.0     # Importância da heurística (distância)
 var evaporation_rate = 0.5
@@ -51,6 +51,9 @@ func construct_tour() -> Array:
 		var next_city = select_next_city(current, visited)
 		tour.append(next_city)
 		visited[next_city] = true
+		
+	# ADICIONE ISTO: Faz a formiga retornar à cidade de origem
+	tour.append(tour[0]) 
 	return tour
 
 func select_next_city(current: int, visited: Dictionary) -> int:
@@ -89,8 +92,10 @@ func update_pheromones(all_tours: Array):
 		for i in range(tour.size() - 1):
 			var from = tour[i]
 			var to = tour[i+1]
+			# Deposite nos dois sentidos do grafo não-direcionado
 			pheromone_matrix[from][to] += q / tour_dist
-
+			pheromone_matrix[to][from] += q / tour_dist
+			
 func calculate_tour_distance(tour: Array) -> float:
 	var d = 0.0
 	for i in range(tour.size() - 1):
