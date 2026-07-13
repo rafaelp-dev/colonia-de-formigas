@@ -1,14 +1,16 @@
 [gd_scene format=3 uid="uid://c5wydpaggoq3c"]
 
-[ext_resource type="Texture2D" uid="uid://01ouwxi8i536" path="res://assets/city.png" id="1_bih7l"]
 [ext_resource type="Script" uid="uid://bbsls2818sbth" path="res://script/city.gd" id="2_58ubr"]
+[ext_resource type="Texture2D" uid="uid://bnmu0c8d8v7ts" path="res://assets/sprite_0037.png" id="2_rqxma"]
 
 [node name="City" type="Node2D" unique_id=385199259]
 script = ExtResource("2_58ubr")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1799697984]
-modulate = Color(2.7915835e-06, 0.7066399, 0.7087121, 1)
-texture = ExtResource("1_bih7l")
+modulate = Color(0.31397024, 0.718553, 0.3559818, 1)
+position = Vector2(-3.8146973e-06, -3.8146973e-06)
+scale = Vector2(0.092285156, 0.092285156)
+texture = ExtResource("2_rqxma")
 
 [node name="Label" type="Label" parent="." unique_id=2115030530]
 anchors_preset = 8

@@ -1,7 +1,7 @@
 extends Node
 
 # Configurações do Algoritmo
-var num_ants = 10
+var num_ants = 20
 var alpha = 1.0    # Importância do feromônio
 var beta = 2.0     # Importância da heurística (distância)
 var evaporation_rate = 0.5
