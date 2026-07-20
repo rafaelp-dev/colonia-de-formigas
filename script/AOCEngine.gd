@@ -92,20 +92,43 @@ func select_next_city(current: int, visited: Dictionary) -> int:
 # Aplicando a evaporação -> caminhos ruins perdem relevância com o tempo
 # Deposita mais feromonios nas rotas percorridas, premiando caminhos que gerem
 # rotas menores
+#func update_pheromones(all_tours: Array):
+	## Evaporação
+	#for i in range(num_cities):
+		#for j in range(num_cities):
+			#pheromone_matrix[i][j] *= (1.0 - evaporation_rate)
+	#
+	#for tour in all_tours:
+		#var tour_dist = calculate_tour_distance(tour)
+		#for i in range(tour.size() - 1):
+			#var from = tour[i]
+			#var to = tour[i+1]
+			#pheromone_matrix[from][to] += q / tour_dist
+			#pheromone_matrix[to][from] += q / tour_dist
+
 func update_pheromones(all_tours: Array):
-	# Evaporação
+	# 1. Evaporação (mantém igual)
 	for i in range(num_cities):
 		for j in range(num_cities):
 			pheromone_matrix[i][j] *= (1.0 - evaporation_rate)
 	
+	# 2. ENCONTRA A FORMIGA ELITE (A que fez o menor caminho na rodada)
+	var elite_tour = all_tours[0]
+	var min_dist = calculate_tour_distance(elite_tour)
+	
 	for tour in all_tours:
-		var tour_dist = calculate_tour_distance(tour)
-		for i in range(tour.size() - 1):
-			var from = tour[i]
-			var to = tour[i+1]
-			pheromone_matrix[from][to] += q / tour_dist
-			pheromone_matrix[to][from] += q / tour_dist
+		var dist = calculate_tour_distance(tour)
+		if dist < min_dist:
+			min_dist = dist
+			elite_tour = tour
 			
+	# 3. DEPÓSITO ELITISTA (Só a formiga vencedora deposita feromônio!)
+	for i in range(elite_tour.size() - 1):
+		var from = elite_tour[i]
+		var to = elite_tour[i+1]
+		pheromone_matrix[from][to] += q / min_dist
+		pheromone_matrix[to][from] += q / min_dist
+
 func calculate_tour_distance(tour: Array) -> float:
 	var d = 0.0
 	for i in range(tour.size() - 1):
